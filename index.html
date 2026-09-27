@@ -21,9 +21,37 @@
       img#pyxel-logo {
         display: none !important;
       }
+      /* Pyxel sizes the canvas box (100% on desktop, 80%-tall with virtual
+         gamepad controls on touch) but doesn't preserve the game's own
+         220x176 aspect ratio within it. object-fit letterboxes the drawn
+         frame instead of stretching it. */
+      canvas#canvas {
+        object-fit: contain;
+        object-position: center;
+      }
+      html, body, #pyxel-screen {
+        touch-action: none;
+      }
+      #portrait-hint {
+        display: none;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 4px;
+        text-align: center;
+        color: #a3a3a3;
+        font: 12px monospace;
+        pointer-events: none;
+      }
+      @media (orientation: portrait) and (pointer: coarse) {
+        #portrait-hint {
+          display: block;
+        }
+      }
     </style>
   </head>
   <body>
     <pyxel-run root="." name="src/main.py" gamepad="enabled"></pyxel-run>
+    <div id="portrait-hint">rotate for a bigger view</div>
   </body>
 </html>

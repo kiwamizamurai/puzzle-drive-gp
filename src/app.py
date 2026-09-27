@@ -1,5 +1,6 @@
 import pyxel
 
+import input as game_input
 import sound
 from constants import (
     COL_BLACK,
@@ -58,49 +59,55 @@ class App:
             self._update_result()
 
     def _update_title(self):
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.KEY_Z):
+        if (
+            game_input.pressed(game_input.BTN_START)
+            or game_input.pressed(game_input.BTN_SPACE)
+            or game_input.pressed(game_input.BTN_CONFIRM)
+        ):
             sound.play_menu()
             self.state = STATE_GARAGE
 
     def _update_garage(self):
-        up = pyxel.btnp(pyxel.KEY_UP, hold=10, repeat=4)
-        down = pyxel.btnp(pyxel.KEY_DOWN, hold=10, repeat=4)
+        up = game_input.pressed(game_input.BTN_UP, hold=10, repeat=4)
+        down = game_input.pressed(game_input.BTN_DOWN, hold=10, repeat=4)
         self.garage.update(self.profile, up, down)
 
-        if pyxel.btnp(pyxel.KEY_Z):
+        if game_input.pressed(game_input.BTN_CONFIRM):
             d = self.garage.current_driver(self.profile)
             if d is not None:
                 self.profile.set_leader(d.instance_id)
                 sound.play_menu()
-        if pyxel.btnp(pyxel.KEY_X):
+        if game_input.pressed(game_input.BTN_BACK):
             d = self.garage.current_driver(self.profile)
             if d is not None:
                 self.profile.toggle_sub(d.instance_id)
                 sound.play_menu()
-        if pyxel.btnp(pyxel.KEY_C):
+        if game_input.pressed(game_input.BTN_GACHA):
             sound.play_menu()
             self.state = STATE_GACHA
-        if pyxel.btnp(pyxel.KEY_RETURN):
+        if game_input.pressed(game_input.BTN_START):
             sound.play_menu()
             self.state = STATE_RACE_SELECT
 
     def _update_gacha(self):
-        confirm = pyxel.btnp(pyxel.KEY_Z) or pyxel.btnp(pyxel.KEY_RETURN)
+        confirm = game_input.pressed(game_input.BTN_CONFIRM) or game_input.pressed(
+            game_input.BTN_START
+        )
         self.gacha_screen.update(self.profile, confirm)
-        if pyxel.btnp(pyxel.KEY_X):
+        if game_input.pressed(game_input.BTN_BACK):
             sound.play_menu()
             self.state = STATE_GARAGE
 
     def _update_race_select(self):
-        left = pyxel.btnp(pyxel.KEY_LEFT)
-        right = pyxel.btnp(pyxel.KEY_RIGHT)
+        left = game_input.pressed(game_input.BTN_LEFT)
+        right = game_input.pressed(game_input.BTN_RIGHT)
         self.race_select.update(left, right)
         if left or right:
             sound.play_menu()
-        if pyxel.btnp(pyxel.KEY_X):
+        if game_input.pressed(game_input.BTN_BACK):
             sound.play_menu()
             self.state = STATE_GARAGE
-        if pyxel.btnp(pyxel.KEY_RETURN):
+        if game_input.pressed(game_input.BTN_START):
             sound.play_menu()
             board_config = self.race_select.selected_board()
             self.race = Race(board_config, self.profile)
@@ -109,30 +116,32 @@ class App:
     def _update_race(self):
         move_col = 0
         move_row = 0
-        if pyxel.btnp(pyxel.KEY_LEFT, hold=8, repeat=4):
+        if game_input.pressed(game_input.BTN_LEFT, hold=8, repeat=4):
             move_col = -1
-        elif pyxel.btnp(pyxel.KEY_RIGHT, hold=8, repeat=4):
+        elif game_input.pressed(game_input.BTN_RIGHT, hold=8, repeat=4):
             move_col = 1
-        if pyxel.btnp(pyxel.KEY_UP, hold=8, repeat=4):
+        if game_input.pressed(game_input.BTN_UP, hold=8, repeat=4):
             move_row = -1
-        elif pyxel.btnp(pyxel.KEY_DOWN, hold=8, repeat=4):
+        elif game_input.pressed(game_input.BTN_DOWN, hold=8, repeat=4):
             move_row = 1
-        hold = pyxel.btn(pyxel.KEY_Z)
-        force_end = pyxel.btnp(pyxel.KEY_X)
+        hold = game_input.held(game_input.BTN_CONFIRM)
+        force_end = game_input.pressed(game_input.BTN_BACK)
 
         aim_dir = 0
-        if pyxel.btn(pyxel.KEY_LEFT):
+        if game_input.held(game_input.BTN_LEFT):
             aim_dir = -1
-        elif pyxel.btn(pyxel.KEY_RIGHT):
+        elif game_input.held(game_input.BTN_RIGHT):
             aim_dir = 1
-        charging = pyxel.btn(pyxel.KEY_Z)
+        charging = game_input.held(game_input.BTN_CONFIRM)
 
         self.race.update(move_col, move_row, hold, force_end, aim_dir, charging)
         if self.race.finished:
             self.state = STATE_RESULT
 
     def _update_result(self):
-        if pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_Z):
+        if game_input.pressed(game_input.BTN_START) or game_input.pressed(
+            game_input.BTN_CONFIRM
+        ):
             sound.play_menu()
             self.race = None
             self.state = STATE_GARAGE
@@ -159,7 +168,8 @@ class App:
         _center_text("MATCH. FLICK. COLLECT.", 74, COL_WHITE)
         if self.blink < 40:
             _center_text("PRESS ENTER", 116, COL_WHITE)
-        _center_text("ARROWS:MOVE  Z:HOLD/CHARGE  X:BACK  C:GACHA", 156, COL_GRAY)
+        _center_text("ARROWS:MOVE  Z:HOLD/CHARGE  X:BACK  C:GACHA", 150, COL_GRAY)
+        _center_text("TOUCH: D-PAD / A / B / Y", 162, COL_GRAY)
 
     def _draw_result(self):
         pyxel.cls(COL_BLACK)
